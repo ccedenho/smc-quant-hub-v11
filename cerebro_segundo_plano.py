@@ -8,16 +8,22 @@ from datetime import datetime
 import urllib.request
 
 # =================================================================
-# SMC QUANT HUB v11.2 - TELEGRAM SENTINEL EDITION
+# SMC QUANT HUB v11.2 - SECURE SENTINEL EDITION (Shield Active)
 # Architect: Gemini CLI (Senior Specialist)
 # =================================================================
 
 PORT = int(os.environ.get("PORT", 8000))
-TELEGRAM_TOKEN = "8257347014:AAH18BpiTCBgdfvKegF54iAlWwNpCQzVE_k"
-TELEGRAM_CHAT_ID = "8502418291"
+
+# SEGURIDAD: Los tokens ya no están en el código. Se leen de las variables de entorno de Render.
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
 def enviar_telegram(mensaje):
-    """Envía una notificación institucional al móvil del usuario"""
+    """Envía una notificación institucional al móvil de forma segura"""
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+        print("[!] Telegram no configurado. Falta Token o ID en variables de entorno.")
+        return
+
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         data = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": mensaje, "parse_mode": "Markdown"}).encode('utf-8')
@@ -47,7 +53,7 @@ class MarketSimulator:
                     enviar_telegram("🚀 *ALERTA SMC: XAU/USD EN ZONA OTE ($5,012.00)*\nBuscando barrido de liquidez SSL. Prepara ejecución institucional.")
                     self.alerta_ote_enviada = True
                 elif self.prices["oro"] > 5015.00:
-                    self.alerta_ote_enviada = False # Reset para la próxima entrada
+                    self.alerta_ote_enviada = False 
             time.sleep(2)
 
     def calculate_potential(self, entry, tp, asset_id, lot):
@@ -119,7 +125,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <html lang="es">
             <head>
                 <meta charset="UTF-8">
-                <title>SMC HUB v11.2 - TELEGRAM ACTIVE</title>
+                <title>SMC HUB v11.2 - SECURE SENTINEL</title>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
                 <style>
                     :root { --bg: #050608; --card: #11141a; --border: #1e222d; --green: #089981; --red: #f23645; --gold: #ffd700; --blue: #2962ff; }
@@ -144,7 +150,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <header>
                         <div>
                             <div style="font-weight:800; color:var(--gold); font-size:24px;">SMC QUANT HUB v11.2</div>
-                            <div style="color:var(--green); font-size:12px;">TELEGRAM SENTINEL ACTIVADO: NOTIFICACIONES AL MÓVIL</div>
+                            <div style="color:var(--green); font-size:12px;">SENTINEL SECURE ACTIVE: CANAL DE ALERTA BLINDADO</div>
                         </div>
                         <button class="btn-generate" onclick="generateSignals()">GENERAR Y ENVIAR SEÑALES NUEVAS</button>
                         <div id="terminal-clock" style="font-family:'JetBrains Mono'; font-size:14px; color:var(--green);">--:--:--</div>
@@ -207,7 +213,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
 def run_server():
     server = HTTPServer(('0.0.0.0', PORT), DashboardHandler)
-    print(f"[*] SMC Hub v11.2 Sentinel - Puerto: {PORT}")
+    print(f"[*] SMC Hub v11.2 Sentinel Secure - Puerto: {PORT}")
     server.serve_forever()
 
 if __name__ == "__main__":
