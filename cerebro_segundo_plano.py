@@ -146,7 +146,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             <div style="font-weight:800; color:var(--gold); font-size:24px;">SMC QUANT HUB v11.2</div>
                             <div style="color:var(--green); font-size:12px;">TELEGRAM SENTINEL ACTIVADO: NOTIFICACIONES AL MÓVIL</div>
                         </div>
-                        <button class="btn-generate" onclick="generateSignals()">Generar Señales y Enviar Reporte</button>
+                        <button class="btn-generate" onclick="generateSignals()">GENERAR Y ENVIAR SEÑALES NUEVAS</button>
                         <div id="terminal-clock" style="font-family:'JetBrains Mono'; font-size:14px; color:var(--green);">--:--:--</div>
                     </header>
                     <div class="matrix-card">
