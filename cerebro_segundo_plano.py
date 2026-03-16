@@ -5,27 +5,49 @@ import threading
 import json
 import random
 from datetime import datetime
+import urllib.request
 
 # =================================================================
-# SMC QUANT HUB v11.2 - CLOUD READY VERSION (Online Mode)
+# SMC QUANT HUB v11.2 - TELEGRAM SENTINEL EDITION
 # Architect: Gemini CLI (Senior Specialist)
 # =================================================================
 
-# El puerto es dinámico para compatibilidad con servicios como Render o Railway
 PORT = int(os.environ.get("PORT", 8000))
+TELEGRAM_TOKEN = "8257347014:AAH18BpiTCBgdfvKegF54iAlWwNpCQzVE_k"
+TELEGRAM_CHAT_ID = "8502418291"
+
+def enviar_telegram(mensaje):
+    """Envía una notificación institucional al móvil del usuario"""
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        data = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": mensaje, "parse_mode": "Markdown"}).encode('utf-8')
+        req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req) as response:
+            return response.read()
+    except Exception as e:
+        print(f"[!] Error enviando Telegram: {e}")
 
 class MarketSimulator:
     def __init__(self):
-        self.prices = {"oro": 5017.29, "eur": 1.1410}
+        self.prices = {"oro": 5017.29, "eur": 1.1410, "dxy": 100.36}
         self.fixed_signals = []
         self.lock = threading.Lock()
-        self.generate_new_signals() 
+        self.alerta_ote_enviada = False
+        self.generate_new_signals(enviar_alerta=True) 
 
     def update_prices(self):
         while True:
             with self.lock:
-                self.prices["oro"] += random.uniform(-0.10, 0.15)
+                self.prices["oro"] += random.uniform(-0.15, 0.20)
                 self.prices["eur"] += random.uniform(-0.0001, 0.0001)
+                self.prices["dxy"] += random.uniform(-0.02, 0.02)
+                
+                # Alerta OTE XAU/USD ($5,012.00)
+                if self.prices["oro"] <= 5012.05 and not self.alerta_ote_enviada:
+                    enviar_telegram("🚀 *ALERTA SMC: XAU/USD EN ZONA OTE ($5,012.00)*\nBuscando barrido de liquidez SSL. Prepara ejecución institucional.")
+                    self.alerta_ote_enviada = True
+                elif self.prices["oro"] > 5015.00:
+                    self.alerta_ote_enviada = False # Reset para la próxima entrada
             time.sleep(2)
 
     def calculate_potential(self, entry, tp, asset_id, lot):
@@ -35,7 +57,7 @@ class MarketSimulator:
         else:
             return round(diff * 100000 * lot, 2)
 
-    def generate_new_signals(self):
+    def generate_new_signals(self, enviar_alerta=False):
         with self.lock:
             p = self.prices
             new_signals = []
@@ -43,17 +65,25 @@ class MarketSimulator:
                 {"id": "oro", "nombre": "XAU/USD (ORO)", "precio": p["oro"], "step": 1.0},
                 {"id": "eur", "nombre": "EUR/USD (EURO)", "precio": p["eur"], "step": 0.0010}
             ]
+            reporte = "📊 *REPORTE DE MATRIZ SMC v11.2*\n\n"
             for asset in config:
                 base = asset["precio"]
+                reporte += f"*{asset['nombre']}*:\n"
                 for tipo, mult_e, mult_sl, mult_tp in [("SCALP", 0.15, 0.8, 3.0), ("INTRADAY", 0.40, 1.5, 7.0), ("SWING", 0.80, 2.0, 10.0)]:
                     entry = round(base - (asset["step"] * mult_e), 4 if asset["id"] == "eur" else 2)
-                    new_signals.append({
+                    sig = {
                         "asset_name": asset["nombre"], "tipo": tipo, "entrada": entry,
                         "sl": round(entry - (asset["step"] * mult_sl), 4 if asset["id"] == "eur" else 2),
                         "tp": round(entry + (asset["step"] * mult_tp), 4 if asset["id"] == "eur" else 2),
                         "tendencia": f"BULLISH {tipo}", "asset_id": asset["id"]
-                    })
+                    }
+                    new_signals.append(sig)
+                    reporte += f"🔹 {tipo}: Entry ${entry} | TP ${sig['tp']}\n"
+                reporte += "\n"
+            
             self.fixed_signals = new_signals
+            if enviar_alerta:
+                enviar_telegram(reporte + "🌐 *Dashboard Online:* https://smc-quant-hub-v11.onrender.com")
 
     def get_full_data(self):
         with self.lock:
@@ -80,7 +110,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.send_response(200); self.send_header('Content-type', 'application/json'); self.end_headers()
             self.wfile.write(json.dumps(simulator.get_full_data()).encode())
         elif self.path == '/api/generate':
-            simulator.generate_new_signals(); self.send_response(200); self.send_header('Content-type', 'application/json'); self.end_headers()
+            simulator.generate_new_signals(enviar_alerta=True); self.send_response(200); self.send_header('Content-type', 'application/json'); self.end_headers()
             self.wfile.write(json.dumps({"success": True}).encode())
         elif self.path == '/':
             self.send_response(200); self.send_header('Content-type', 'text/html; charset=utf-8'); self.end_headers()
@@ -89,7 +119,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <html lang="es">
             <head>
                 <meta charset="UTF-8">
-                <title>SMC HUB v11.2 - ONLINE MODE</title>
+                <title>SMC HUB v11.2 - TELEGRAM ACTIVE</title>
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
                 <style>
                     :root { --bg: #050608; --card: #11141a; --border: #1e222d; --green: #089981; --red: #f23645; --gold: #ffd700; --blue: #2962ff; }
@@ -114,9 +144,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     <header>
                         <div>
                             <div style="font-weight:800; color:var(--gold); font-size:24px;">SMC QUANT HUB v11.2</div>
-                            <div style="color:var(--green); font-size:12px;">TABLERO ONLINE: ACCESO GLOBAL ACTIVADO</div>
+                            <div style="color:var(--green); font-size:12px;">TELEGRAM SENTINEL ACTIVADO: NOTIFICACIONES AL MÓVIL</div>
                         </div>
-                        <button class="btn-generate" onclick="generateSignals()">Actualizar Matriz</button>
+                        <button class="btn-generate" onclick="generateSignals()">Generar Señales y Enviar Reporte</button>
                         <div id="terminal-clock" style="font-family:'JetBrains Mono'; font-size:14px; color:var(--green);">--:--:--</div>
                     </header>
                     <div class="matrix-card">
@@ -140,7 +170,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     new TradingView.widget({"autosize": true, "symbol": "FX:EURUSD", "interval": "15", "theme": "dark", "container_id": "tv_eur"});
 
                     async function generateSignals() {
-                        if(confirm("¿Recalcular matriz y gráficos?")) { await fetch('/api/generate'); update(); }
+                        if(confirm("¿Recalcular matriz y enviar reporte a Telegram?")) { await fetch('/api/generate'); update(); }
                     }
                     async function update() {
                         try {
@@ -176,9 +206,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.wfile.write(html.encode('utf-8'))
 
 def run_server():
-    # Escuchando en 0.0.0.0 para acceso externo
     server = HTTPServer(('0.0.0.0', PORT), DashboardHandler)
-    print(f"[*] SMC Hub v11.2 Online - Puerto: {PORT}")
+    print(f"[*] SMC Hub v11.2 Sentinel - Puerto: {PORT}")
     server.serve_forever()
 
 if __name__ == "__main__":
