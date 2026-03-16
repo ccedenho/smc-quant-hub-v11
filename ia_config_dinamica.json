@@ -1,0 +1,8 @@
+{
+    "buffer_manipulacion_oro": 3.5,
+    "buffer_manipulacion_euro": 0.0005,
+    "filtro_fomo_activo": true,
+    "riesgo_maximo_permitido": 0.5,
+    "ratio_rb_minimo": 2.0,
+    "estado_mercado": "ALTA_MANIPULACION"
+}

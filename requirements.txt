@@ -1,0 +1,2 @@
+# No se requieren librerías externas para el servidor básico de Python
+# Pero se incluye para compatibilidad con el despliegue

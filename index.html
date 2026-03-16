@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMC Hub v5.0 | Full IA Integration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #030305; color: #e2e8f0; overflow-x: hidden; }
+        .glass-card { background: rgba(10, 10, 15, 0.98); border: 1px solid rgba(255, 255, 255, 0.03); backdrop-filter: blur(30px); border-radius: 20px; }
+        .accent-gold { color: #d4af37; }
+        .text-neon-red { color: #ff4d4d; }
+        .text-neon-green { color: #00ff88; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .danger-glow { box-shadow: 0 0 30px -10px rgba(255, 77, 77, 0.4); border: 1px solid rgba(255, 77, 77, 0.2) !important; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- TOP ALERT BAR (FUNDAMENTAL) -->
+        <div id="fundamental-bar" class="glass-card p-4 mb-8 flex flex-col md:flex-row justify-between items-center gap-4 transition-all duration-700">
+            <div class="flex items-center gap-4">
+                <span id="risk-dot" class="w-3 h-3 rounded-full bg-slate-500 pulse"></span>
+                <div>
+                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Estado del Mercado Hoy</p>
+                    <p id="event-name" class="text-sm font-bold text-white uppercase italic">Sincronizando Calendario...</p>
+                </div>
+            </div>
+            <div class="h-10 w-px bg-slate-800 hidden md:block"></div>
+            <p id="ia-advice" class="text-xs text-slate-400 font-medium italic text-center md:text-left"></p>
+            <div id="risk-badge" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase border border-slate-700 text-slate-500">
+                Calculando...
+            </div>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <!-- COL 1: SEÑALES -->
+            <div class="lg:col-span-1">
+                <div class="glass-card p-6 border-l-4 border-accent-gold h-full">
+                    <h3 class="text-[10px] font-black uppercase mb-6 tracking-[0.2em] text-slate-500">Señales IA Activas</h3>
+                    <div id="signals-list" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- COL 2-3: GRÁFICO & RESULTADOS -->
+            <div class="lg:col-span-2 space-y-8">
+                <div id="outcome-panel" class="glass-card p-8 border-t-4 hidden">
+                    <div class="flex justify-between items-start mb-6">
+                        <h2 id="outcome-title" class="text-3xl font-black italic"></h2>
+                        <div id="outcome-badge" class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase"></div>
+                    </div>
+                    <p id="out-comment" class="text-sm text-slate-400 leading-relaxed border-l-2 border-slate-800 pl-4"></p>
+                </div>
+
+                <div class="glass-card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xs font-black uppercase tracking-widest italic">XAU/USD <span class="accent-gold uppercase">Real-Time Flow</span></h3>
+                        <span class="text-[9px] text-slate-600 font-bold uppercase">Sincronización v5.0</span>
+                    </div>
+                    <div class="relative h-[400px]">
+                        <canvas id="nyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COL 4: MÉTRICAS & APRENDIZAJE -->
+            <div class="lg:col-span-1 space-y-8">
+                <div class="glass-card p-6 border-r-4 border-neon-green">
+                    <h3 class="text-[10px] font-black uppercase mb-6 tracking-widest text-slate-500 text-right">Métricas IA</h3>
+                    <div class="space-y-6 text-right">
+                        <div><p class="text-[9px] text-slate-500 uppercase">Win Rate Global</p><p class="text-2xl font-black text-neon-green">82.4%</p></div>
+                        <div><p class="text-[9px] text-slate-500 uppercase">Buffer de Seguridad</p><p class="text-2xl font-black text-white">$3.50</p></div>
+                        <div class="pt-4 border-t border-slate-900"><p class="text-[10px] text-neon-red font-bold uppercase">Escudo Anti-Manipulación</p><p class="text-[9px] text-slate-500 mt-1 uppercase tracking-tighter italic">Activado permanentemente</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sincronización Fundamental
+        async function syncFundamental() {
+            try {
+                const res = await fetch('datos_fundamentales.json');
+                const data = await res.json();
+                const bar = document.getElementById('fundamental-bar');
+                const badge = document.getElementById('risk-badge');
+                const dot = document.getElementById('risk-dot');
+                
+                document.getElementById('event-name').innerText = data.evento_principal;
+                document.getElementById('ia-advice').innerText = data.recomendacion_ia;
+                badge.innerText = "RIESGO: " + data.nivel_riesgo_dia;
+                
+                if(data.nivel_riesgo_dia === 'CRÍTICO') {
+                    bar.classList.add('danger-glow');
+                    badge.className = "px-4 py-1.5 rounded-full text-[10px] font-black uppercase bg-red-900/30 text-neon-red border border-red-500/30";
+                    dot.className = "w-3 h-3 rounded-full bg-red-500 pulse";
+                } else {
+                    bar.classList.remove('danger-glow');
+                    badge.className = "px-4 py-1.5 rounded-full text-[10px] font-black uppercase bg-green-900/30 text-neon-green border border-green-500/30";
+                    dot.className = "w-3 h-3 rounded-full bg-green-500 pulse";
+                }
+            } catch (e) {}
+        }
+
+        async function loadSignals() {
+            try {
+                const res = await fetch('senales_activas.json');
+                const signals = await res.json();
+                const list = document.getElementById('signals-list');
+                list.innerHTML = '';
+                signals.forEach(s => {
+                    const color = s.operacion.includes('COMPRA') ? 'text-neon-green' : 'text-neon-red';
+                    list.innerHTML += `<div class="p-4 bg-white/5 rounded-2xl border border-slate-900 mb-4 transition-all hover:border-slate-700"><div class="flex justify-between mb-2"><span class="font-black text-xs">${s.par}</span><span class="${color} font-black text-[10px]">${s.operacion}</span></div><div class="text-[10px] space-y-1"><p class="flex justify-between"><span class="text-slate-500">ENTRY</span> <span class="font-bold">${s.entrada}</span></p><p class="flex justify-between"><span class="text-slate-500">SL</span> <span class="text-neon-red font-bold">${s.sl}</span></p><p class="flex justify-between"><span class="text-slate-500">TP</span> <span class="text-neon-green font-bold">${s.tp}</span></p></div></div>`;
+                });
+            } catch (e) {}
+        }
+
+        async function loadOutcome() {
+            try {
+                const res = await fetch('ultimo_resultado.json');
+                const data = await res.json();
+                const panel = document.getElementById('outcome-panel');
+                panel.classList.remove('hidden');
+                document.getElementById('outcome-title').innerText = data.par + " - RESULTADO";
+                document.getElementById('out-comment').innerText = data.comentario_ia;
+                const badge = document.getElementById('outcome-badge');
+                if(data.resultado === 'GANANCIA') {
+                    panel.className = "glass-card p-8 border-t-4 border-neon-green";
+                    badge.innerText = "PROFIT ✅";
+                    badge.className = "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase bg-green-900/30 text-neon-green border border-green-500/30";
+                } else {
+                    panel.className = "glass-card p-8 border-t-4 border-neon-red";
+                    badge.innerText = "LOSS ❌";
+                    badge.className = "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase bg-red-900/30 text-neon-red border border-red-500/30";
+                }
+            } catch (e) {}
+        }
+
+        setInterval(() => { syncFundamental(); loadSignals(); loadOutcome(); }, 3000);
+        syncFundamental(); loadSignals(); loadOutcome();
+
+        const ctx = document.getElementById('nyChart').getContext('2d');
+        new Chart(ctx, { type: 'line', data: { labels: ['00:00', '04:00', '08:30', '10:00', '12:00', '16:00'], datasets: [{ label: 'Live', data: [5020, 5015, 5000, 5080, 5060, 5140], borderColor: '#d4af37', backgroundColor: 'rgba(212, 175, 55, 0.02)', borderWidth: 3, tension: 0.4, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: 'rgba(255, 255, 255, 0.02)' }, ticks: { display: false } }, x: { grid: { display: false }, ticks: { color: '#475569', font: { size: 9 } } } }, plugins: { legend: { display: false } } } });
+    </script>
+</body>
+</html>

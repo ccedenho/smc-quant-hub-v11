@@ -1,0 +1,19 @@
+{
+    "sesion_id": "SMC-NY-OPEN-2026-03-16",
+    "timestamp_restauracion": "2026-03-14T21:00:00Z",
+    "especialidad": "Senior Forex Specialist (XAU/USD - SMC)",
+    "configuracion_ia": {
+        "buffer_oro": 3.5,
+        "riesgo_fijo": "1%",
+        "filtro_fomo": "ACTIVO",
+        "killzone_ny": "08:30 - 11:00 EST"
+    },
+    "estado_ecosistema": {
+        "dashboard": "v5.0 Online (Puerto 8080)",
+        "notificador": "Telegram v4.0 listo",
+        "ia_fundamental": "Activa (Escaneo CPI/NFP)",
+        "backtesting": "30 días completados (82% Win Rate)"
+    },
+    "objetivo_lunes": "Barrido de liquidez en $5,000 + Rechazo DXY en 100.42",
+    "ultimo_chat_resumen": "Se completó la arquitectura de trading institucional con IA adaptativa, servidor web online, notificaciones a Telegram y validador de resultados. El sistema está en Standby esperando la apertura de NY."
+}

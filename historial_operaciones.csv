@@ -1,0 +1,6 @@
+fecha,par,sesion,resultado,riesgo_porcentaje,error_identificado,comentario_especialista
+2026-03-02,XAU/USD,ASIA,PERDIDA,3.0,FUERA_DE_KILLZONE,Operó en Asia sin volumen institucional. Error de paciencia.
+2026-03-03,XAU/USD,LONDRES,PERDIDA,1.0,CONTRA_TENDENCIA_HTF,Entró en largo mientras D1 era bajista sin esperar CHoCH en M15.
+2026-03-05,XAU/USD,NY,GANANCIA,1.0,NINGUNO,Entrada perfecta en Silver Bullet a las 10:00 AM.
+2026-03-06,XAU/USD,NY,PERDIDA,5.0,SOBRE_APALANCAMIENTO,Riesgo excesivo del 5%. Una sola pérdida dañó la cuenta emocionalmente.
+2026-03-09,XAU/USD,NY,PERDIDA,1.0,ENTRADA_TARDIA_FOMO,Entró cuando el precio ya estaba en el target. No esperó el retroceso al FVG.
